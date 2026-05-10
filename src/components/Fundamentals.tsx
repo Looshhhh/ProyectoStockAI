@@ -17,16 +17,13 @@ function fmt(v: number | null, prefix = "", suffix = "", decimals = 2) {
 function formatCap(v: number | null) {
   if (v == null) return "—";
   if (v >= 1e12) return `$${(v / 1e12).toFixed(2)}T`;
-  if (v >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
+  if (v >= 1e9)  return `$${(v / 1e9).toFixed(2)}B`;
   return `$${(v / 1e6).toFixed(2)}M`;
 }
 
 const RATING_LABEL: Record<string, string> = {
-  strongBuy: "Compra fuerte",
-  buy: "Compra",
-  hold: "Mantener",
-  sell: "Venta",
-  strongSell: "Venta fuerte",
+  strongBuy: "Compra fuerte", buy: "Compra",
+  hold: "Mantener", sell: "Venta", strongSell: "Venta fuerte",
 };
 
 function ratingColor(r: string | null) {

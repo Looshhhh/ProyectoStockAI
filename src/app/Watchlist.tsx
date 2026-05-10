@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import StockCard from "./StockCard";
+import StockCard from "@/components/StockCard";
 import { getStockFullData, getHistoricalData, type StockFullData } from "./actions";
-import type { HistoricalPoint } from "./PriceChart";
+import type { HistoricalPoint } from "@/lib/yahooFinance";
 
 const STORAGE_KEY = "watchlist_symbols";
 const DEFAULT_SYMBOLS = ["NVDA", "TSLA", "META"];

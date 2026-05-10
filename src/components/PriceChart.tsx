@@ -2,20 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  Chart,
-  LineController,
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Filler,
-  Tooltip,
+  Chart, LineController, LineElement, PointElement,
+  LinearScale, CategoryScale, Filler, Tooltip,
 } from "chart.js";
+import type { HistoricalPoint, Period } from "@/lib/yahooFinance";
+import { getHistoricalData } from "@/app/actions";
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Filler, Tooltip);
 
-export type HistoricalPoint = { date: string; close: number };
-type Period = "1D" | "1W" | "1M" | "3M";
 const PERIODS: Period[] = ["1D", "1W", "1M", "3M"];
 
 function formatLabel(iso: string, period: Period): string {
@@ -30,25 +24,23 @@ type Props = {
   data: HistoricalPoint[];
   currentPrice: number;
   changePercent: number;
-  onPeriodChange: (p: Period) => Promise<HistoricalPoint[]>;
 };
 
-export default function PriceChart({ symbol, data: init, currentPrice, changePercent, onPeriodChange }: Props) {
+export default function PriceChart({ symbol, data: init, currentPrice, changePercent }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const chartRef = useRef<Chart | null>(null);
+  const chartRef  = useRef<Chart | null>(null);
   const [period, setPeriod] = useState<Period>("1M");
-  const [data, setData] = useState(init);
+  const [data, setData]     = useState(init);
   const [loading, setLoading] = useState(false);
 
   const isPositive = changePercent >= 0;
-  const lineColor = isPositive ? "#22c55e" : "#ef4444";
-  const fillColor = isPositive ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)";
+  const lineColor  = isPositive ? "#22c55e" : "#ef4444";
+  const fillColor  = isPositive ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)";
 
   useEffect(() => {
     if (!canvasRef.current || data.length === 0) return;
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
-
     const labels = data.map((p) => formatLabel(p.date, period));
     const values = data.map((p) => p.close);
 
@@ -66,49 +58,30 @@ export default function PriceChart({ symbol, data: init, currentPrice, changePer
       data: {
         labels,
         datasets: [{
-          data: values,
-          borderColor: lineColor,
-          backgroundColor: fillColor,
-          borderWidth: 2,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          pointHoverBackgroundColor: lineColor,
-          fill: true,
-          tension: 0.3,
+          data: values, borderColor: lineColor, backgroundColor: fillColor,
+          borderWidth: 2, pointRadius: 0, pointHoverRadius: 4,
+          pointHoverBackgroundColor: lineColor, fill: true, tension: 0.3,
         }],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         interaction: { mode: "index", intersect: false },
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: "#18181b",
-            titleColor: "#a1a1aa",
-            bodyColor: "#fff",
-            padding: 10,
-            displayColors: false,
+            backgroundColor: "#18181b", titleColor: "#a1a1aa", bodyColor: "#fff",
+            padding: 10, displayColors: false,
             callbacks: { label: (i) => `$${(i.parsed.y as number).toFixed(2)}` },
           },
         },
         scales: {
-          x: {
-            type: "category",
-            grid: { display: false },
-            border: { display: false },
-            ticks: { color: "#71717a", font: { size: 11 }, maxTicksLimit: 6, maxRotation: 0 },
-          },
-          y: {
-            position: "right",
-            grid: { color: "rgba(255,255,255,0.04)" },
-            border: { display: false },
-            ticks: { color: "#71717a", font: { size: 11 }, callback: (v) => `$${(v as number).toFixed(0)}` },
-          },
+          x: { type: "category", grid: { display: false }, border: { display: false },
+               ticks: { color: "#71717a", font: { size: 11 }, maxTicksLimit: 6, maxRotation: 0 } },
+          y: { position: "right", grid: { color: "rgba(255,255,255,0.04)" }, border: { display: false },
+               ticks: { color: "#71717a", font: { size: 11 }, callback: (v) => `$${(v as number).toFixed(0)}` } },
         },
       },
     });
-
     return () => { chartRef.current?.destroy(); chartRef.current = null; };
   }, [data, lineColor, fillColor, period]);
 
@@ -116,7 +89,7 @@ export default function PriceChart({ symbol, data: init, currentPrice, changePer
     if (p === period || loading) return;
     setLoading(true);
     setPeriod(p);
-    try { setData(await onPeriodChange(p)); }
+    try { setData(await getHistoricalData(symbol, p)); }
     finally { setLoading(false); }
   }
 

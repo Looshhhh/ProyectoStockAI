@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+  env: {
+    NEWSAPI_KEY: process.env.NEWSAPI_KEY!,
+  },
 };
 
 export default nextConfig;
